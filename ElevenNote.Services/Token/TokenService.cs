@@ -10,16 +10,27 @@ using ElevenNote.Models.Token;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace ElevenNote.Services.Token
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IConfiguration _configuration;
+    
     public class TokenService : ITokenService
     {
+
+        private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+        public TokenService(ApplicationDbContext context, IConfiguration configuration)
+
+    {
+        _context = context;
+        _configuration = configuration;
+    }
+
         public async Task<TokenResponse> GetTokenAsync(TokenRequest model) 
         { 
-            var userEntity - await GetValidUserAsync(model);
+            var userEntity = await GetValidUserAsync(model);
             if (userEntity is null)
                 return null;
 
@@ -34,8 +45,8 @@ namespace ElevenNote.Services.Token
 
             var passwordHasher = new PasswordHasher<UserEntity>();
 
-            var verifyPassowrdResult = passwordHasher.verifyPassowrdResult(userEntity, userEntity.Password, model.Password);
-            if (verifyPassowrdResult == PasswordVerificationResult.Failed)
+            var verifyPasswordResult = passwordHasher.VerifyHashedPassword(userEntity, userEntity.Password, model.Password);
+            if (verifyPasswordResult == PasswordVerificationResult.Failed)
             return null;
 
             return userEntity;
@@ -44,7 +55,7 @@ namespace ElevenNote.Services.Token
         { 
             var claims = GetClaims(entity);
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF.GetBytes(_configuration["Jwt:Key"]));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var tokenDescriptor = new SecurityTokenDescriptor
