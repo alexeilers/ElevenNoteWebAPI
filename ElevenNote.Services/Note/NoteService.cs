@@ -42,7 +42,7 @@ namespace ElevenNote.Services.Note
             return numberOfChanges == 1;
         }
 
-        public async Task<IEnumerable<NoteListItem>> GetNoteListItemsAsync()
+        public async Task<IEnumerable<NoteListItem>> GetAllNotesAsync()
         {
             var notes = await _dbContext.Notes
                 .Where(entity => entity.OwnerId == _userId)
@@ -71,6 +71,22 @@ namespace ElevenNote.Services.Note
                 CreatedUtc = noteEntity.CreatedUtc,
                 ModifiedUtc = noteEntity.ModifiedUtc
             };
+        }
+
+        public async Task<bool> UpdateNoteAsync(NoteUpdate request)
+        {
+            var noteEntity = await _dbContext.Notes.FindAsync(request.Id);
+            if (noteEntity?.OwnerId != _userId)
+                return false;
+
+            noteEntity.Title = request.Title;
+            noteEntity.Content = request.Content;
+            noteEntity.ModifiedUtc = DateTimeOffset.Now;
+
+            var numberOfChanges = await _dbContext.SaveChangesAsync();
+
+            return numberOfChanges == 1;
+
         }
     }
 }
