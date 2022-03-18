@@ -105,8 +105,6 @@ namespace ElevenNote.WebAPI
 
             app.UseAuthentication();
 
-            app.UseAuthentication();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
